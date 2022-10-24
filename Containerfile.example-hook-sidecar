@@ -1,0 +1,18 @@
+FROM quay.io/kubevirt/builder:2209281119-14a6cb40f AS builder
+ADD . /tmp/src/
+USER 0
+
+WORKDIR /tmp/src/
+
+RUN ./hack/bootstrap.sh
+RUN bazel build //cmd/example-hook-sidecar
+
+
+
+FROM registry.access.redhat.com/ubi8/ubi-minimal AS runner
+RUN mkdir /app
+WORKDIR /app
+
+COPY --from=builder /tmp/src/bazel-bin/cmd/example-hook-sidecar/example-hook-sidecar_/example-hook-sidecar /app/example-hook-sidecar
+
+CMD ["/app/example-hook-sidecar"]
